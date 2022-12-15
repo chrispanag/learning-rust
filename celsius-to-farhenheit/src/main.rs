@@ -12,10 +12,6 @@ enum ReadResult {
     EmptyString,
 }
 
-fn celsius_to_fahrenheit(celsius: f64) -> f64 {
-    celsius * (9.0 / 5.0) + 32.0
-}
-
 fn read_buffer(x: &mut String, buffer: &[u8; MAX_BUFFER]) -> Option<ReadResult> {
     for (i, uc) in buffer.iter().enumerate() {
         let c = *uc as char;
@@ -59,6 +55,10 @@ fn read_string(x: &mut String) -> Result<ReadResult, &str> {
             }
         }
     }
+}
+
+fn celsius_to_fahrenheit(celsius: f64) -> f64 {
+    celsius * (9.0 / 5.0) + 32.0
 }
 
 fn main() -> io::Result<()> {
