@@ -16,41 +16,44 @@ fn celsius_to_fahrenheit(celsius: f64) -> f64 {
     celsius * (9.0 / 5.0) + 32.0
 }
 
-fn read_buffer(x: &mut String, buffer: &[u8; MAX_BUFFER]) -> ReadResult {
+fn read_buffer(x: &mut String, buffer: &[u8; MAX_BUFFER]) -> Option<ReadResult> {
     for (i, uc) in buffer.iter().enumerate() {
         let c = *uc as char;
         match c {
             '\n' => {
                 if x.len() > 0 {
                     *x = String::from(x.trim());
-                    return ReadResult::Success;
+                    return Some(ReadResult::Success);
                 }
 
-                return ReadResult::EmptyString;
+                return Some(ReadResult::EmptyString);
             }
-            'e' => return ReadResult::Exit,
+            'e' => return Some(ReadResult::Exit),
             '-' => {
                 if i == 0 {
                     String::push(x, c);
                     continue;
                 }
 
-                return ReadResult::CharsInNumber;
+                return Some(ReadResult::CharsInNumber);
             }
             '.' => String::push(x, c),
             '0'..='9' => String::push(x, c),
-            _ => return ReadResult::CharsInNumber,
+            _ => return Some(ReadResult::CharsInNumber),
         }
     }
 
-    ReadResult::EmptyString
+    None
 }
 
 fn read_string(x: &mut String) -> Result<ReadResult, &str> {
     let mut buffer: [u8; MAX_BUFFER] = [0; MAX_BUFFER];
     loop {
         match io::stdin().read(&mut buffer) {
-            Ok(_) => return Ok(read_buffer(x, &buffer)),
+            Ok(_) => match read_buffer(x, &buffer) {
+                Some(x) => return Ok(x),
+                None => continue, // Handle buffer overflows gracefully!
+            },
             Err(_) => {
                 return Err("Read failure!");
             }
