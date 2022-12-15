@@ -2,72 +2,97 @@ use std::char;
 use std::io::Write;
 use std::io::{self, Read};
 
-const BACKSPACE: char = 8u8 as char;
 const MAX_BUFFER: usize = 1000;
+
+#[derive(PartialEq)]
+enum ReadResult {
+    Exit = 1,
+    Success = 0,
+    Failure = -1,
+    CharsInNumber = -2,
+}
 
 fn celsius_to_fahrenheit(celsius: f64) -> f64 {
     celsius * (9.0 / 5.0) + 32.0
 }
 
-fn parse_string() -> String {
-    let mut x = String::new();
-    let mut buffer: [u8; 1000] = [0; MAX_BUFFER];
+fn read_string(x: &mut String) -> ReadResult {
+    let mut buffer: [u8; MAX_BUFFER] = [0; MAX_BUFFER];
+    let mut res = ReadResult::Failure;
     'outer: loop {
-        let l = io::stdin().read(&mut buffer).expect("Failed to read bytes");
-        if l > MAX_BUFFER {
-            println!("Buffer overflow!");
-            return String::from("EXIT");
-        }
-        for i in 0..=l {
-            let c = buffer[i] as char;
-            if char::is_numeric(c) || c == '.' {
-                String::push(&mut x, c);
-                continue;
-            }
-            if c == '\n' {
-                if x.len() > 0 {
-                    break 'outer;
-                } else {
-                    print!("celsius = ");
-                    io::stdout().flush().expect("Issue flushing!");
-                    continue;
+        match io::stdin().read(&mut buffer) {
+            Ok(_) => {
+                for i in buffer {
+                    let c = i as char;
+                    match c {
+                        c if char::is_numeric(c) => String::push(x, c),
+                        '.' => String::push(x, c),
+                        '\n' => {
+                            if x.len() > 0 {
+                                res = ReadResult::Success;
+                                break 'outer;
+                            } else {
+                                print!("celsius = ");
+                                match io::stdout().flush() {
+                                    Ok(_) => {
+                                        continue;
+                                    }
+                                    Err(_) => {
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        'e' => return ReadResult::Exit,
+                        _ => return ReadResult::CharsInNumber,
+                    }
                 }
             }
-            print!("{}", BACKSPACE);
-            if c == 'e' {
-                return String::from("EXIT");
+            Err(_) => {
+                println!("Read failure!");
+                break;
             }
         }
     }
 
-    String::from(x.trim())
+    *x = String::from(x.trim());
+    res
 }
 
 fn main() -> io::Result<()> {
     loop {
         print!("Input a temperature in celsius...\ncelsius = ");
         io::stdout().flush()?;
-        let x = parse_string();
-
-        println!();
-
-        let x: f64 = match x.parse() {
-            Ok(num) => num,
-            Err(_) => {
-                if x == "EXIT" {
-                    println!("Exiting...");
-                    break;
-                } else {
-                    println!("Invalid character, please input number");
-                    continue;
-                }
+        let mut x = String::new();
+        let res = read_string(&mut x);
+        match res {
+            ReadResult::Exit => {
+                println!("Exiting...");
+                break;
             }
-        };
+            ReadResult::Failure => {
+                println!("Panic!");
+                break;
+            }
+            ReadResult::Success => {
+                println!();
 
-        let fahrenheit = celsius_to_fahrenheit(x);
+                let x: f64 = x
+                    .parse()
+                    .expect("Error, parse_string should only return if number exists");
 
-        println!("{x} celsius is {fahrenheit} fahrenheit");
-        println!()
+                let fahrenheit = celsius_to_fahrenheit(x);
+
+                println!("{x} celsius is {fahrenheit} fahrenheit");
+                println!();
+                continue;
+            }
+            ReadResult::CharsInNumber => {
+                println!("Chars in number!");
+                println!();
+                continue;
+            }
+        }
     }
 
     Ok(())
