@@ -56,35 +56,27 @@ fn main() -> io::Result<()> {
         print!("Input a temperature in celsius...\ncelsius = ");
         io::stdout().flush()?;
         let mut x = String::new();
-        let res = read_string(&mut x);
+        let res = read_string(&mut x).expect("read_string");
         match res {
-            Ok(res) => match res {
-                ReadResult::Exit => {
-                    println!("Exiting...");
-                    break;
-                }
-                ReadResult::Success => {
-                    println!();
-
-                    let x: f64 = x
-                        .parse()
-                        .expect("Error, parse_string should only return if number exists");
-
-                    let fahrenheit = celsius_to_fahrenheit(x);
-
-                    println!("{x} celsius is {fahrenheit} fahrenheit");
-                    println!();
-                    continue;
-                }
-                ReadResult::CharsInNumber => {
-                    println!("Chars in number!");
-                    println!();
-                    continue;
-                }
-            },
-            Err(err) => {
-                println!("{err}");
+            ReadResult::Exit => {
+                println!("Exiting...");
                 break;
+            }
+            ReadResult::Success => {
+                println!();
+
+                let x: f64 = x.parse().expect("parse_string");
+
+                let fahrenheit = celsius_to_fahrenheit(x);
+
+                println!("{x} celsius is {fahrenheit} fahrenheit");
+                println!();
+                continue;
+            }
+            ReadResult::CharsInNumber => {
+                println!("Chars in number!");
+                println!();
+                continue;
             }
         }
     }
