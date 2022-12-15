@@ -56,10 +56,8 @@ fn main() -> io::Result<()> {
         print!("Input a temperature in celsius...\ncelsius = ");
         io::stdout().flush().expect("print flush");
         let mut x = String::new();
-        let res = read_string(&mut x).expect("read_string");
-        match res {
+        match read_string(&mut x).expect("read_string") {
             ReadResult::Exit => {
-                println!("Exiting...");
                 break;
             }
             ReadResult::Success => {
@@ -81,5 +79,6 @@ fn main() -> io::Result<()> {
         }
     }
 
+    println!("Exiting...");
     Ok(())
 }
