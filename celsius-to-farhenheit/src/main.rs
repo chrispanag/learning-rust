@@ -4,7 +4,6 @@ use std::io::{self, Read};
 
 const MAX_BUFFER: usize = 1000;
 
-#[derive(PartialEq)]
 enum ReadResult {
     Success,
     Exit,
