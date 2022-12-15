@@ -54,7 +54,7 @@ fn read_string(x: &mut String) -> Result<ReadResult, &str> {
 fn main() -> io::Result<()> {
     loop {
         print!("Input a temperature in celsius...\ncelsius = ");
-        io::stdout().flush()?;
+        io::stdout().flush().expect("print flush");
         let mut x = String::new();
         let res = read_string(&mut x).expect("read_string");
         match res {
