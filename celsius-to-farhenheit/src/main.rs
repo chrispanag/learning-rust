@@ -8,7 +8,6 @@ const MAX_BUFFER: usize = 1000;
 enum ReadResult {
     Exit = 1,
     Success = 0,
-    Failure = -1,
     CharsInNumber = -2,
 }
 
@@ -16,10 +15,9 @@ fn celsius_to_fahrenheit(celsius: f64) -> f64 {
     celsius * (9.0 / 5.0) + 32.0
 }
 
-fn read_string(x: &mut String) -> ReadResult {
+fn read_string(x: &mut String) -> Result<ReadResult, &str> {
     let mut buffer: [u8; MAX_BUFFER] = [0; MAX_BUFFER];
-    let mut res = ReadResult::Failure;
-    'outer: loop {
+    loop {
         match io::stdin().read(&mut buffer) {
             Ok(_) => {
                 for i in buffer {
@@ -29,34 +27,28 @@ fn read_string(x: &mut String) -> ReadResult {
                         '.' => String::push(x, c),
                         '\n' => {
                             if x.len() > 0 {
-                                res = ReadResult::Success;
-                                break 'outer;
+                                *x = String::from(x.trim());
+                                return Ok(ReadResult::Success);
                             } else {
                                 print!("celsius = ");
                                 match io::stdout().flush() {
                                     Ok(_) => {
                                         continue;
                                     }
-                                    Err(_) => {
-                                        break;
-                                    }
+                                    Err(_) => return Err("Error flushing"),
                                 }
                             }
                         }
-                        'e' => return ReadResult::Exit,
-                        _ => return ReadResult::CharsInNumber,
+                        'e' => return Ok(ReadResult::Exit),
+                        _ => return Ok(ReadResult::CharsInNumber),
                     }
                 }
             }
             Err(_) => {
-                println!("Read failure!");
-                break;
+                return Err("Read failure!");
             }
         }
     }
-
-    *x = String::from(x.trim());
-    res
 }
 
 fn main() -> io::Result<()> {
@@ -66,31 +58,33 @@ fn main() -> io::Result<()> {
         let mut x = String::new();
         let res = read_string(&mut x);
         match res {
-            ReadResult::Exit => {
-                println!("Exiting...");
+            Ok(res) => match res {
+                ReadResult::Exit => {
+                    println!("Exiting...");
+                    break;
+                }
+                ReadResult::Success => {
+                    println!();
+
+                    let x: f64 = x
+                        .parse()
+                        .expect("Error, parse_string should only return if number exists");
+
+                    let fahrenheit = celsius_to_fahrenheit(x);
+
+                    println!("{x} celsius is {fahrenheit} fahrenheit");
+                    println!();
+                    continue;
+                }
+                ReadResult::CharsInNumber => {
+                    println!("Chars in number!");
+                    println!();
+                    continue;
+                }
+            },
+            Err(err) => {
+                println!("{err}");
                 break;
-            }
-            ReadResult::Failure => {
-                println!("Panic!");
-                break;
-            }
-            ReadResult::Success => {
-                println!();
-
-                let x: f64 = x
-                    .parse()
-                    .expect("Error, parse_string should only return if number exists");
-
-                let fahrenheit = celsius_to_fahrenheit(x);
-
-                println!("{x} celsius is {fahrenheit} fahrenheit");
-                println!();
-                continue;
-            }
-            ReadResult::CharsInNumber => {
-                println!("Chars in number!");
-                println!();
-                continue;
             }
         }
     }
