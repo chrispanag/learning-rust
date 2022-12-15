@@ -6,10 +6,10 @@ const MAX_BUFFER: usize = 1000;
 
 #[derive(PartialEq)]
 enum ReadResult {
-    Exit = 1,
-    Success = 0,
-    CharsInNumber = 2,
-    EmptyString = 3,
+    Success,
+    Exit,
+    CharsInNumber,
+    EmptyString,
 }
 
 fn celsius_to_fahrenheit(celsius: f64) -> f64 {
