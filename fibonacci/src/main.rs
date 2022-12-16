@@ -2,8 +2,8 @@ use std::io::stdin;
 
 fn print_vec(seq: &[u128]) {
     let mut s = String::new();
-    for (i, el) in seq.iter().enumerate() {
-        s.push_str(&el.to_string());
+    for (i, el) in seq.iter().map(|el| el.to_string()).enumerate() {
+        s.push_str(&el);
 
         // Don't add it in the last string
         if i != seq.len() - 1 {
